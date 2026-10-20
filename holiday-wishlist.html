@@ -1,0 +1,527 @@
+<title>Where to Next</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: travel-desk split — your wishlist form on the left, a departure-board team view on the right; stacks on phones. */
+:root {
+  --paper: #F2F5F7;
+  --card: #FFFFFF;
+  --ink: #14283B;
+  --muted: #5A6B7B;
+  --line: #D3DCE4;
+  --accent: #C9761A;
+  --accent-ink: #FFFFFF;
+  --board: #14283B;
+  --board-ink: #F4C35A;
+  --board-dim: #8FA3B6;
+  --heat: 201 70% 42%;
+  --ok: #2E7D4F;
+  --err: #B3261E;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0D1620; --card: #15212D; --ink: #E4ECF2; --muted: #93A4B4; --line: #2A3A49;
+  --accent: #F0A445; --accent-ink: #1A1206; --board: #060D14; --board-ink: #F4C35A; --board-dim: #6F8396;
+  --heat: 199 75% 58%; --ok: #6CC891; --err: #FF8A80; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --paper: #0D1620; --card: #15212D; --ink: #E4ECF2; --muted: #93A4B4; --line: #2A3A49;
+  --accent: #F0A445; --accent-ink: #1A1206; --board: #060D14; --board-ink: #F4C35A; --board-dim: #6F8396;
+  --heat: 199 75% 58%; --ok: #6CC891; --err: #FF8A80; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font: 16px/1.5 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 48px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; }
+h1 { font: 800 clamp(2rem, 5vw, 3.1rem)/1 var(--f-display); margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
+h1 span { color: var(--accent); }
+.lede { margin: 8px 0 0; color: var(--muted); max-width: 56ch; }
+.me { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+.me img { width: 32px; height: 32px; border-radius: 50%; }
+.grid { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+h2 { font: 600 1.25rem/1.2 var(--f-display); margin: 0; }
+.eyebrow { font: 700 11px/1 var(--f-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+/* Form */
+form { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 18px; }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; min-width: 0; }
+legend { padding: 0; margin-bottom: 8px; font-weight: 700; }
+label { font-weight: 700; font-size: 14px; }
+.hint { font-size: 13px; color: var(--muted); font-weight: 400; }
+.rank { display: grid; grid-template-columns: 28px minmax(0, 1fr); align-items: center; gap: 10px; }
+.rank b { font: 700 13px/1 var(--f-mono); color: var(--muted); text-align: center; }
+input[type=text], input[type=date], select, textarea { width: 100%; font: inherit; color: var(--ink); background: var(--paper);
+  border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; min-width: 0; }
+input[type=date] { font-family: var(--f-mono); font-size: 14px; }
+textarea { min-height: 80px; resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dates { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dates > div { display: grid; gap: 4px; min-width: 0; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; font-size: 15px; }
+.check input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--accent); }
+.tiers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tiers label { display: grid; gap: 2px; border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; cursor: pointer; font-size: 14px; }
+.tiers input { position: absolute; opacity: 0; pointer-events: none; }
+.tiers label:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.tiers label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button { font: 700 15px/1 var(--f-body); border-radius: 8px; padding: 11px 18px; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--ink); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.status { font-size: 14px; color: var(--muted); }
+.status.ok { color: var(--ok); } .status.err { color: var(--err); }
+.notice { border: 1px dashed var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; color: var(--muted); }
+
+/* Team side */
+.team { display: grid; gap: 22px; min-width: 0; }
+.board { background: var(--board); color: var(--board-ink); border-radius: 14px; padding: 18px 20px; font-family: var(--f-mono); }
+.board-head { display: flex; justify-content: space-between; gap: 10px; color: var(--board-dim); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; padding-bottom: 10px; border-bottom: 1px solid color-mix(in srgb, var(--board-dim) 35%, transparent); }
+.row { display: grid; grid-template-columns: 2.2em minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid color-mix(in srgb, var(--board-dim) 18%, transparent); font-variant-numeric: tabular-nums; }
+.row:last-child { border-bottom: 0; }
+.row .pos { color: var(--board-dim); }
+.row .dest { text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; overflow-wrap: anywhere; }
+.row .votes { color: var(--board-dim); font-size: 13px; }
+.row .pts { font-weight: 700; }
+.board .empty { color: var(--board-dim); padding: 14px 0 4px; font-size: 14px; }
+
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 14px; min-width: 0; }
+.best { font: 600 1.15rem/1.3 var(--f-display); }
+.best small { display: block; font: 400 14px/1.4 var(--f-body); color: var(--muted); margin-top: 2px; }
+.heat-scroll { overflow-x: auto; padding-bottom: 4px; }
+.heat { display: flex; gap: 1px; min-width: 100%; height: 44px; align-items: stretch; }
+.heat i { flex: 1 0 4px; border-radius: 2px; background: hsl(var(--heat) / var(--a)); }
+.heat i.peak { outline: 2px solid var(--accent); outline-offset: -1px; }
+.axis { display: flex; justify-content: space-between; font: 500 12px/1 var(--f-mono); color: var(--muted); margin-top: 6px; }
+.legend { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.legend span { width: 60px; height: 8px; border-radius: 2px; background: linear-gradient(90deg, hsl(var(--heat) / .12), hsl(var(--heat) / 1)); }
+
+.people { list-style: none; margin: 0; padding: 0; display: grid; }
+.people li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+.people li:first-child { border-top: 0; padding-top: 2px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--paper); border: 1px solid var(--line); font: 700 15px/1 var(--f-display); color: var(--accent); }
+.who { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.who strong { font-size: 15px; }
+.meta { font: 500 13px/1.4 var(--f-mono); color: var(--muted); }
+.picks { margin: 4px 0 0; font-size: 15px; overflow-wrap: anywhere; }
+.picks em { font-style: normal; color: var(--muted); }
+.note { margin: 6px 0 0; font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.chip { font: 700 11px/1 var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.chip.flex { border-color: var(--accent); color: var(--accent); }
+.chip.open { border-color: var(--ok); color: var(--ok); }
+.chip.closed { border-color: var(--accent); color: var(--accent); }
+.poll .best { margin: 0; }
+.entry-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.entry-actions button { padding: 7px 12px; font-size: 13px; }
+button.danger { color: var(--err); border-color: color-mix(in srgb, var(--err) 45%, var(--line)); }
+.found { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; border-style: solid; border-color: var(--accent); color: var(--ink); }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+@media (prefers-reduced-motion: no-preference) { .row, .people li { animation: in .3s ease both; } @keyframes in { from { transform: translateY(3px); } to { transform: none; } } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Team holiday wishlist</div>
+      <h1>Where to <span>next?</span></h1>
+      <p class="lede">Pick up to three destinations, the dates you'd like to travel and a rough budget. Answers stay private while the poll is open. When it closes, everyone sees the full results.</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <form id="form" novalidate>
+      <div>
+        <div class="eyebrow">Your wishlist</div>
+        <h2 id="formTitle">Add your preferences</h2>
+      </div>
+      <div class="notice" id="notice" hidden></div>
+
+      <fieldset>
+        <label for="name">Your name</label>
+        <input type="text" id="name" maxlength="60" autocomplete="name" placeholder="e.g. Alex Tan" required>
+        <label for="email">Work email <span class="hint">· already answered? Enter the same email to load and change your answer</span></label>
+        <input type="email" id="email" maxlength="120" autocomplete="email" placeholder="alex.tan@company.com" required>
+        <div class="notice found" id="found" hidden><span id="foundMsg"></span><button type="button" id="loadPrev">Load my earlier answer</button></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Destinations <span class="hint">· ranked, first choice counts most</span></legend>
+        <div class="rank"><b>1st</b><input type="text" id="dest1" maxlength="60" placeholder="e.g. Kyoto" aria-label="First choice destination" required></div>
+        <div class="rank"><b>2nd</b><input type="text" id="dest2" maxlength="60" placeholder="e.g. Bali" aria-label="Second choice destination"></div>
+        <div class="rank"><b>3rd</b><input type="text" id="dest3" maxlength="60" placeholder="e.g. Lisbon" aria-label="Third choice destination"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>When would you like to go?</legend>
+        <div class="dates">
+          <div><label for="from">From</label><input type="date" id="from" required></div>
+          <div><label for="to">To</label><input type="date" id="to" required></div>
+        </div>
+        <label class="check"><input type="checkbox" id="flexible"><span>My dates are flexible<br><span class="hint">I can shift a few days either way.</span></span></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Budget per person</legend>
+        <div class="tiers" id="tiers">
+          <label><input type="radio" name="budget" id="b1" value="Budget"><span>Budget</span><span class="hint">Hostels, local food</span></label>
+          <label><input type="radio" name="budget" id="b2" value="Mid-range"><span>Mid-range</span><span class="hint">3★ hotels</span></label>
+          <label><input type="radio" name="budget" id="b3" value="Comfortable"><span>Comfortable</span><span class="hint">4★, a few treats</span></label>
+          <label><input type="radio" name="budget" id="b4" value="Splurge"><span>Splurge</span><span class="hint">Go all out</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <label for="notes">Notes <span class="hint">· optional</span></label>
+        <textarea id="notes" maxlength="500" placeholder="Must-dos, dates to avoid, travel buddies…"></textarea>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" class="primary" id="save">Save my wishlist</button>
+        <span class="status" id="status" role="status"></span>
+      </div>
+    </form>
+
+    <section class="team" aria-label="Poll results">
+      <div class="panel poll" id="pollPanel">
+        <div class="panel-head">
+          <div class="eyebrow">Poll status</div>
+          <span class="chip" id="pollChip">Open</span>
+        </div>
+        <p class="best" id="pollMsg">Checking the poll…</p>
+        <div class="actions"><button type="button" id="orgToggle" hidden>Organizer view</button></div>
+        <div class="actions" id="ownerControls" hidden>
+          <button type="button" class="primary" id="toggle">Close poll and show results</button>
+          <span class="status" id="ownerStatus" role="status"></span>
+        </div>
+      </div>
+
+      <div class="team" id="results" hidden>
+      <div class="board" aria-label="Top destinations">
+        <div class="board-head"><span>Top destinations</span><span id="count">0 responses</span></div>
+        <div id="rows"><div class="empty">Waiting for the first wishlist. Destinations appear here ranked by points: 3 for a first choice, 2 for second, 1 for third.</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="eyebrow">Date overlap</div>
+        <div class="best" id="best">No dates yet<small>Once people add their travel windows, the busiest overlap shows here.</small></div>
+        <div id="heatWrap" hidden>
+          <div class="heat-scroll"><div class="heat" id="heat" role="img"></div></div>
+          <div class="axis"><span id="axFrom"></span><span id="axTo"></span></div>
+        </div>
+        <div class="legend" id="legend" hidden>fewer <span></span> more people free</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="eyebrow">Everyone's picks</div>
+          <button type="button" id="export" hidden>Download CSV</button>
+        </div>
+        <ul class="people" id="people"><li style="display:block;border:0;padding:0" class="hint">No responses yet. Fill in the form to be the first.</li></ul>
+      </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const BUDGETS = ["Budget", "Mid-range", "Comfortable", "Splurge"];
+  let db = null, user = null, downloads = null;
+  let isOwner = false, canWrite = true, organizer = false;
+  let live = [];                        // every response, keyed by email; shown only in organizer view while the poll is open
+  let poll = { open: true, results: [] }; // shared doc: results are copied here when the poll closes
+  let renderSeq = 0;
+  const responsesShown = () => (organizer ? live : poll.open ? [] : poll.results || []);
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailKey = (email) => email.toLowerCase().replace(/[^a-z0-9_\-.~:@+]/g, "_");
+
+  const setStatus = (msg, cls = "") => { const s = $("status"); s.textContent = msg; s.className = "status " + cls; };
+  const notice = (msg) => { const n = $("notice"); n.textContent = msg; n.hidden = !msg; };
+  const lockForm = (locked) => { for (const el of $("form").elements) el.disabled = locked; };
+
+  const parseDay = (s) => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d); };
+  const DAY = 86400000;
+  const fmt = (t, opts = { day: "numeric", month: "short" }) => new Date(t).toLocaleDateString(undefined, { ...opts, timeZone: "UTC" });
+  const fmtRange = (a, b) => {
+    const sameYear = new Date(a).getUTCFullYear() === new Date(b).getUTCFullYear();
+    return fmt(a, sameYear ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" }) + " – " + fmt(b, { day: "numeric", month: "short", year: "numeric" });
+  };
+  const nights = (a, b) => Math.round((b - a) / DAY);
+  const norm = (s) => s.trim().replace(/\s+/g, " ");
+
+  function readForm() {
+    const dest = ["dest1", "dest2", "dest3"].map((id) => norm($(id).value)).filter(Boolean);
+    const b = document.querySelector('input[name="budget"]:checked');
+    return { name: norm($("name").value), email: $("email").value.trim().toLowerCase(), dest, from: $("from").value, to: $("to").value, flexible: $("flexible").checked, budget: b ? b.value : "", notes: $("notes").value.trim() };
+  }
+  function fillForm(r) {
+    ["dest1", "dest2", "dest3"].forEach((id, i) => ($(id).value = (r.dest && r.dest[i]) || ""));
+    $("name").value = r.name || ""; $("email").value = r.email || "";
+    $("from").value = r.from || ""; $("to").value = r.to || "";
+    $("flexible").checked = !!r.flexible;
+    document.querySelectorAll('input[name="budget"]').forEach((el) => (el.checked = el.value === r.budget));
+    $("notes").value = r.notes || "";
+  }
+
+  // ---- Aggregation ----
+  function tally(list) {
+    const map = new Map();
+    for (const r of list) (r.dest || []).slice(0, 3).forEach((d, i) => {
+      const key = d.toLowerCase();
+      const e = map.get(key) || { name: d, pts: 0, first: 0, people: 0 };
+      e.pts += 3 - i; e.people += 1; if (i === 0) e.first += 1;
+      map.set(key, e);
+    });
+    return [...map.values()].sort((a, b) => b.pts - a.pts || b.first - a.first || a.name.localeCompare(b.name));
+  }
+  function overlap(list) {
+    const ranges = list.filter((r) => r.from && r.to && r.from <= r.to).map((r) => [parseDay(r.from), parseDay(r.to)]);
+    if (!ranges.length) return null;
+    const start = Math.min(...ranges.map((r) => r[0]));
+    const end = Math.min(Math.max(...ranges.map((r) => r[1])), start + 730 * DAY);
+    const days = [];
+    for (let t = start; t <= end; t += DAY) days.push({ t, n: ranges.filter(([a, b]) => a <= t && t <= b).length });
+    const max = Math.max(...days.map((d) => d.n));
+    let best = null, run = null;
+    for (const d of days) {
+      if (d.n === max) { run = run ? { ...run, to: d.t } : { from: d.t, to: d.t }; if (!best || run.to - run.from > best.to - best.from) best = { ...run }; }
+      else run = null;
+    }
+    return { days, max, best, total: ranges.length };
+  }
+
+  // ---- Render ----
+  async function render() {
+    const seq = ++renderSeq;
+    renderPoll();
+    $("results").hidden = !(organizer || !poll.open);
+    const list = responsesShown().slice().sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+    $("count").textContent = list.length + (list.length === 1 ? " response" : " responses");
+
+    const top = tally(list).slice(0, 8);
+    const rows = $("rows");
+    if (!top.length) {
+      rows.innerHTML = '<div class="empty">Waiting for the first wishlist. Destinations appear here ranked by points: 3 for a first choice, 2 for second, 1 for third.</div>';
+    } else {
+      rows.replaceChildren(...top.map((e, i) => {
+        const row = document.createElement("div"); row.className = "row";
+        const cells = [[String(i + 1).padStart(2, "0"), "pos"], [e.name, "dest"], [e.people + (e.people === 1 ? " pick" : " picks"), "votes"], [e.pts + " pts", "pts"]];
+        for (const [txt, cls] of cells) { const s = document.createElement("span"); s.className = cls; s.textContent = txt; row.append(s); }
+        return row;
+      }));
+    }
+
+    const ov = overlap(list);
+    $("heatWrap").hidden = $("legend").hidden = !ov;
+    if (!ov) {
+      $("best").innerHTML = "No dates yet<small>Once people add their travel windows, the busiest overlap shows here.</small>";
+    } else {
+      const { best, max, total, days } = ov;
+      const len = nights(best.from, best.to) + 1;
+      $("best").textContent = fmtRange(best.from, best.to);
+      const sm = document.createElement("small");
+      sm.textContent = `${max} of ${total} ${total === 1 ? "person is" : "people are"} free on all ${len} ${len === 1 ? "day" : "days"} of this window.`;
+      $("best").append(sm);
+      const heat = $("heat");
+      heat.setAttribute("aria-label", `Availability from ${fmt(days[0].t)} to ${fmt(days[days.length - 1].t)}; peak of ${max} people.`);
+      heat.replaceChildren(...days.map((d) => {
+        const i = document.createElement("i");
+        i.style.setProperty("--a", d.n ? (0.15 + 0.85 * d.n / max).toFixed(2) : "0.05");
+        if (d.t >= best.from && d.t <= best.to) i.className = "peak";
+        i.title = `${fmt(d.t, { weekday: "short", day: "numeric", month: "short" })}: ${d.n} free`;
+        return i;
+      }));
+      $("axFrom").textContent = fmt(days[0].t, { day: "numeric", month: "short", year: "numeric" });
+      $("axTo").textContent = fmt(days[days.length - 1].t, { day: "numeric", month: "short", year: "numeric" });
+    }
+
+    const ul = $("people");
+    if (!list.length) {
+      ul.innerHTML = '<li style="display:block;border:0;padding:0" class="hint">No responses yet. Fill in the form to be the first.</li>';
+      return;
+    }
+    if (seq !== renderSeq) return;
+    ul.replaceChildren(...list.map((r) => {
+      const li = document.createElement("li");
+      const av = document.createElement("span"); av.className = "avatar"; av.textContent = (r.name || "?").trim().charAt(0).toUpperCase();
+      const body = document.createElement("div"); body.style.minWidth = "0";
+      const who = document.createElement("div"); who.className = "who";
+      const name = document.createElement("strong"); name.textContent = r.name || "A colleague";
+      who.append(name);
+      if (organizer && r.email) { const em = document.createElement("span"); em.className = "meta"; em.textContent = r.email; who.append(em); }
+      if (r.from && r.to) { const m = document.createElement("span"); m.className = "meta"; const a = parseDay(r.from), b = parseDay(r.to); m.textContent = `${fmtRange(a, b)} · ${nights(a, b)}n`; who.append(m); }
+      if (r.flexible) { const c = document.createElement("span"); c.className = "chip flex"; c.textContent = "Flexible"; who.append(c); }
+      if (r.budget) { const c = document.createElement("span"); c.className = "chip"; c.textContent = r.budget; who.append(c); }
+      const picks = document.createElement("p"); picks.className = "picks";
+      (r.dest || []).forEach((d, i) => {
+        if (i) { const sep = document.createElement("em"); sep.textContent = " → "; picks.append(sep); }
+        const s = document.createElement(i === 0 ? "strong" : "span"); s.textContent = d; picks.append(s);
+      });
+      body.append(who, picks);
+      if (r.notes) { const n = document.createElement("p"); n.className = "note"; n.textContent = r.notes; body.append(n); }
+      if (organizer) body.append(entryActions(r));
+      li.append(av, body);
+      return li;
+    }));
+  }
+
+  function renderPoll() {
+    const chip = $("pollChip");
+    chip.textContent = poll.open ? "Open" : "Closed";
+    chip.className = "chip " + (poll.open ? "open" : "closed");
+    const n = live.length, msg = $("pollMsg");
+    $("ownerControls").hidden = !organizer;
+    $("orgToggle").textContent = organizer ? "Leave organizer view" : "Organizer view";
+    if (organizer) {
+      msg.textContent = poll.open
+        ? `${n} ${n === 1 ? "response" : "responses"} so far. Colleagues can't see them until you close the poll.`
+        : `Closed${poll.closedAt ? " on " + fmt(Date.parse(poll.closedAt), { day: "numeric", month: "short", year: "numeric" }) : ""}. Everyone can now see the results below.`;
+      $("toggle").textContent = poll.open ? "Close poll and show results" : "Reopen poll";
+    } else {
+      msg.textContent = poll.open
+        ? "Results appear here when the organizer closes the poll."
+        : "The poll is closed. Here's where everyone wants to go.";
+    }
+    const locked = !canWrite || !poll.open;
+    lockForm(locked);
+    if (canWrite) notice(poll.open ? "" : "The poll is closed, so answers can no longer be changed.");
+  }
+
+  // ---- Actions ----
+  let prev = null, loadedKey = null, editingKey = null; // editingKey: entry the organizer opened with Edit
+  const ownerStatus = (msg, cls = "") => { const s = $("ownerStatus"); s.textContent = msg; s.className = "status " + cls; };
+  function entryActions(r) {
+    const who = r.name || r.email || "this entry";
+    const acts = document.createElement("div"); acts.className = "entry-actions";
+    const edit = document.createElement("button"); edit.type = "button"; edit.textContent = "Edit";
+    edit.disabled = !poll.open; if (!poll.open) edit.title = "Reopen the poll to edit answers";
+    edit.addEventListener("click", () => {
+      fillForm(r); editMode(r.id); editingKey = r.id; $("found").hidden = true;
+      setStatus(`Editing ${who}'s answer. Change anything, then click Update my wishlist.`, "ok");
+      $("form").scrollIntoView({ behavior: "smooth", block: "start" }); $("name").focus({ preventScroll: true });
+    });
+    const del = document.createElement("button"); del.type = "button"; del.className = "danger"; del.textContent = "Delete";
+    del.addEventListener("click", async () => {
+      if (del.dataset.confirm !== "1") {
+        del.dataset.confirm = "1"; del.textContent = "Click again to delete";
+        setTimeout(() => { del.dataset.confirm = ""; del.textContent = "Delete"; }, 4000);
+        return;
+      }
+      del.disabled = true;
+      try {
+        await db.doc("responses/" + r.id).delete();
+        // A closed poll shows a frozen copy of the results, so remove the entry there too.
+        if (!poll.open) await db.doc("poll/state").update({ results: (poll.results || []).filter((x) => x.id !== r.id) });
+        if (editingKey === r.id || loadedKey === r.id) { fillForm({}); resetMode(); editingKey = null; setStatus(""); }
+        ownerStatus(`Deleted ${who}'s answer.`, "ok");
+      } catch { del.disabled = false; ownerStatus("Couldn't delete that answer. Try again.", "err"); }
+    });
+    acts.append(edit, del);
+    return acts;
+  }
+  const resetMode = () => { loadedKey = null; $("formTitle").textContent = "Add your preferences"; $("save").textContent = "Save my wishlist"; };
+  const editMode = (key) => { loadedKey = key; $("formTitle").textContent = "Update your preferences"; $("save").textContent = "Update my wishlist"; };
+  async function checkEmail() {
+    const email = $("email").value.trim().toLowerCase();
+    $("found").hidden = true;
+    if (!db || !EMAIL_RE.test(email)) return;
+    const key = emailKey(email);
+    if (key === loadedKey) return;
+    resetMode();
+    try {
+      const snap = await db.doc("responses/" + key).get();
+      if (emailKey($("email").value.trim().toLowerCase()) !== key || !snap.exists) return;
+      prev = { ...snap.data(), email };
+      const when = prev.updatedAt ? ", saved " + fmt(Date.parse(prev.updatedAt), { day: "numeric", month: "short" }) : "";
+      $("foundMsg").textContent = `You already answered with this email${when}.`;
+      $("found").hidden = false;
+    } catch { /* lookup is a convenience; saving still works */ }
+  }
+  $("email").addEventListener("change", checkEmail);
+  $("loadPrev").addEventListener("click", () => {
+    if (!prev) return;
+    fillForm(prev); editMode(emailKey(prev.email)); $("found").hidden = true;
+    setStatus("Your earlier answer is loaded. Change anything, then click Update my wishlist.", "ok");
+  });
+  $("orgToggle").addEventListener("click", () => { organizer = !organizer; $("export").hidden = !(organizer && downloads); render(); });
+  $("toggle").addEventListener("click", async () => {
+    const btn = $("toggle"), st = $("ownerStatus");
+    btn.disabled = true; st.textContent = "";
+    const keep = ["name", "dest", "from", "to", "flexible", "budget", "notes", "updatedAt"];
+    // Emails stay out of the shared results; the organizer gets them from the CSV.
+    const snapshot = live.map((r) => Object.fromEntries([["id", r.id], ...keep.map((k) => [k, r[k] ?? null])]));
+    try {
+      await db.doc("poll/state").set(poll.open
+        ? { open: false, closedAt: new Date().toISOString(), results: snapshot }
+        : { open: true, results: [] });
+    } catch { st.textContent = "Couldn't update the poll. Try again."; st.className = "status err"; }
+    finally { btn.disabled = false; }
+  });
+  $("form").addEventListener("input", () => setStatus(""));
+  $("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!db) return;
+    const r = readForm();
+    if (!r.name) { setStatus("Add your name so the team knows whose wishlist this is.", "err"); $("name").focus(); return; }
+    if (!EMAIL_RE.test(r.email)) { setStatus("Enter a valid email address, like alex.tan@company.com.", "err"); $("email").focus(); return; }
+    if (!r.dest.length) { setStatus("Add at least your first-choice destination.", "err"); $("dest1").focus(); return; }
+    if (!r.from || !r.to) { setStatus("Pick both a start and an end date.", "err"); (r.from ? $("to") : $("from")).focus(); return; }
+    if (r.from > r.to) { setStatus("The end date is before the start date.", "err"); $("to").focus(); return; }
+    if (r.budget && !BUDGETS.includes(r.budget)) r.budget = "";
+    $("save").disabled = true; setStatus("Saving…");
+    try {
+      const key = emailKey(r.email);
+      const existed = live.some((x) => x.id === key);
+      await db.doc("responses/" + key).set({ ...r, updatedAt: new Date().toISOString() });
+      // The organizer changed the email while editing: move the entry rather than leave a duplicate.
+      if (editingKey && editingKey !== key) await db.doc("responses/" + editingKey).delete();
+      editingKey = null;
+      $("found").hidden = true; editMode(key);
+      setStatus(existed ? `Updated the answer for ${r.email}.` : `Saved for ${r.email}. Thanks! You can come back with the same email to change it.`, "ok");
+    } catch (err) {
+      if (err && err.code === "invalid_argument") { lockForm(true); notice("This login doesn't have permission to submit. Ask the organizer to check the page's sharing settings."); setStatus(""); }
+      else setStatus("Couldn't save just now. Check your connection and try again.", "err");
+    } finally { $("save").disabled = $("form").elements[0].disabled; }
+  });
+  $("export").addEventListener("click", async () => {
+    const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [["Name", "Email", "1st choice", "2nd choice", "3rd choice", "From", "To", "Flexible", "Budget", "Notes", "Updated"].map(q).join(",")];
+    for (const r of live) lines.push([r.name || "Unknown", r.email, r.dest?.[0], r.dest?.[1], r.dest?.[2], r.from, r.to, r.flexible ? "Yes" : "No", r.budget, r.notes, r.updatedAt].map(q).join(","));
+    try { await downloads.save({ filename: "holiday-wishlist.csv", data: lines.join("\r\n") }); }
+    catch (err) { if (err && err.code !== "cancelled" && err.code !== "declined") setStatus("The download didn't start.", "err"); }
+  });
+
+  // ---- Boot ----
+  async function start() {
+    if (!window.claude || !window.claude.use) { lockForm(true); $("pollMsg").textContent = "Open this page on claude.ai to take part."; notice("Open this page on claude.ai and sign in to add your wishlist."); return; }
+    [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if (!db) { lockForm(true); $("pollMsg").textContent = "Sign in to see the poll."; notice("Sign in to claude.ai with the team login to add your wishlist."); return; }
+
+    if (user && (await user.can("data.write")) === false) {
+      canWrite = false; lockForm(true);
+      notice("This login doesn't have permission to submit. Ask the organizer to check the page's sharing settings.");
+    }
+    isOwner = user ? await user.isOwner() : false;
+    if (isOwner) {
+      $("orgToggle").hidden = false;
+      downloads = await claude.use("downloads");
+      db.collection("responses").onSnapshot((snap) => {
+        live = snap.docs.filter((d) => d.exists).map((d) => ({ id: d.id, ...d.data() }));
+        render();
+      }, () => notice("Responses stopped updating. Reload the page to reconnect."));
+    }
+
+    db.doc("poll/state").onSnapshot((snap) => {
+      poll = snap.exists ? snap.data() : { open: true, results: [] };
+      render();
+    }, () => notice("The poll stopped updating. Reload the page to reconnect."));
+  }
+  start();
+})();
+</script>
